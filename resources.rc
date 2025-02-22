@@ -1,0 +1,11 @@
+// resources.rc
+
+#include "resource.h"
+
+// If you already have a physical copy of 7z.dll to embed:
+IDR_7Z_DLL RCDATA "7z.dll"
+
+// For the PyInstaller-built help_crack.exe. Note that this file won't
+// initially exist until the custom command finishes. We'll arrange
+// the build order in CMake so it’s generated first.
+IDR_HELPCRACK_EXE RCDATA "help_crack.exe"
