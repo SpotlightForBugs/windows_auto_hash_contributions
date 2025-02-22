@@ -42,10 +42,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
 
-      - name: Create and Push New Git Tag
+      - name: Ensure Tag Exists Before Release
         run: |
-          git tag ${{ env.NEW_VERSION }}
-          git push origin ${{ env.NEW_VERSION }}
+          git fetch --tags
+          if ! git rev-parse ${{ env.NEW_VERSION }} >/dev/null 2>&1; then
+            git tag ${{ env.NEW_VERSION }}
+            git push origin ${{ env.NEW_VERSION }}
+          fi
 
       - name: Install MinGW
         run: |
@@ -84,6 +87,20 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Ensure Tag Exists Before Release
+        run: |
+          git fetch --tags
+          if ! git rev-parse ${{ env.NEW_VERSION }} >/dev/null 2>&1; then
+            git tag ${{ env.NEW_VERSION }}
+            git push origin ${{ env.NEW_VERSION }}
+          fi
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
