@@ -16,22 +16,23 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all tags to determine latest version
 
-      - name: Get Latest Tag and Increment Version
+      - name: Get Latest Tag and Increment Version (PowerShell)
         id: versioning
+        shell: pwsh
         run: |
           git fetch --tags
-          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
-          
-          if [ -z "$LATEST_TAG" ]; then
-            NEW_VERSION="v0.1.0"
-          else
-            BASE_VERSION=$(echo $LATEST_TAG | sed 's/v//')
-            IFS='.' read -r -a VERSION_PARTS <<< "$BASE_VERSION"
-            PATCH=$((VERSION_PARTS[2] + 1))
-            NEW_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
-          fi
-          
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          $LATEST_TAG = git tag --sort=-v:refname | Select-Object -First 1
+
+          if (-not $LATEST_TAG) {
+            $NEW_VERSION = "v0.1.0"
+          } else {
+            $BASE_VERSION = $LATEST_TAG -replace "^v", ""
+            $VERSION_PARTS = $BASE_VERSION -split "\."
+            $PATCH = [int]$VERSION_PARTS[2] + 1
+            $NEW_VERSION = "v$($VERSION_PARTS[0]).$($VERSION_PARTS[1]).$PATCH"
+          }
+
+          echo "NEW_VERSION=$NEW_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "New release version: $NEW_VERSION"
 
       - name: Create New Git Tag
