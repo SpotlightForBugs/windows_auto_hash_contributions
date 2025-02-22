@@ -1,0 +1,87 @@
+name: Auto Build & Release (Windows)
+
+on:
+  push:
+    branches:
+      - main  # Runs on every commit to main
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all tags to determine latest version
+
+      - name: Get Latest Tag and Increment Version
+        id: versioning
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            NEW_VERSION="v0.1.0"
+          else
+            BASE_VERSION=$(echo $LATEST_TAG | sed 's/v//')
+            IFS='.' read -r -a VERSION_PARTS <<< "$BASE_VERSION"
+            PATCH=$((VERSION_PARTS[2] + 1))
+            NEW_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+          fi
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "New release version: $NEW_VERSION"
+
+      - name: Create New Git Tag
+        run: |
+          git tag ${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G "Visual Studio 17 2022"
+
+      - name: Build Project
+        run: cmake --build build --config Release
+
+      - name: Collect Artifacts
+        run: |
+          mkdir artifacts
+          copy build\Release\standard.exe artifacts\
+          copy build\Release\headless.exe artifacts\
+          copy help_crack.exe artifacts\
+          copy 7z.dll artifacts\
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stanev_help_crack_build
+          path: artifacts/
+
+  release:
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: stanev_help_crack_build
+          path: artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          name: "Release ${{ env.NEW_VERSION }}"
+          body: "Automated release for commit `${{ github.sha }}`."
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
