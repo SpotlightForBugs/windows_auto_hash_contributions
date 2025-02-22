@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    outputs:
+      new_version: ${{ steps.versioning.outputs.new_version }}
 
     steps:
       - name: Checkout Repository
@@ -34,6 +36,7 @@ jobs:
           }
 
           echo "NEW_VERSION=$NEW_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "::set-output name=new_version::$NEW_VERSION"
           echo "New release version: $NEW_VERSION"
 
       - name: Configure Git for Authentication
@@ -46,12 +49,12 @@ jobs:
         shell: pwsh
         run: |
           git fetch --tags --force
-          if (-not (git rev-parse ${{ env.NEW_VERSION }} 2>$null)) {
-            echo "Creating new tag ${{ env.NEW_VERSION }}"
-            git tag -f ${{ env.NEW_VERSION }}
-            git push origin ${{ env.NEW_VERSION }} --force
+          if (-not (git rev-parse --verify "refs/tags/$env:NEW_VERSION" 2>$null)) {
+            echo "Creating new tag $env:NEW_VERSION"
+            git tag $env:NEW_VERSION
+            git push origin $env:NEW_VERSION
           } else {
-            echo "Tag ${{ env.NEW_VERSION }} already exists."
+            echo "Tag $env:NEW_VERSION already exists."
           }
 
       - name: Install MinGW
@@ -100,10 +103,16 @@ jobs:
       - name: Ensure Tag Exists Before Release
         run: |
           git fetch --tags --force
-          git tag -f $NEW_VERSION
-          git push origin $NEW_VERSION --force
+          if ! git rev-parse --verify "refs/tags/${NEW_VERSION}" >/dev/null 2>&1; then
+            echo "Creating tag ${NEW_VERSION}"
+            git tag "${NEW_VERSION}"
+            git push origin "${NEW_VERSION}"
+          else
+            echo "Tag ${NEW_VERSION} already exists."
+          fi
         shell: bash
-
+        env:
+          NEW_VERSION: ${{ needs.build.outputs.new_version }}
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -114,9 +123,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.NEW_VERSION }}
-          name: "Release ${{ env.NEW_VERSION }}"
-          body: "Automated release for commit `${{ github.sha }}`."
+          tag_name: ${{ needs.build.outputs.new_version }}
+          name: "Release ${{ needs.build.outputs.new_version }}"
+          body: "Automated release for commit \`${{ github.sha }}\`."
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
