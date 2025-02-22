@@ -45,10 +45,13 @@ jobs:
       - name: Ensure Tag Exists Before Release
         shell: pwsh
         run: |
-          git fetch --tags
+          git fetch --tags --force
           if (-not (git rev-parse ${{ env.NEW_VERSION }} 2>$null)) {
-            git tag ${{ env.NEW_VERSION }}
-            git push origin ${{ env.NEW_VERSION }}
+            echo "Creating new tag ${{ env.NEW_VERSION }}"
+            git tag -f ${{ env.NEW_VERSION }}
+            git push origin ${{ env.NEW_VERSION }} --force
+          } else {
+            echo "Tag ${{ env.NEW_VERSION }} already exists."
           }
 
       - name: Install MinGW
@@ -97,10 +100,13 @@ jobs:
       - name: Ensure Tag Exists Before Release
         shell: pwsh
         run: |
-          git fetch --tags
+          git fetch --tags --force
           if (-not (git rev-parse ${{ env.NEW_VERSION }} 2>$null)) {
-            git tag ${{ env.NEW_VERSION }}
-            git push origin ${{ env.NEW_VERSION }}
+            echo "Creating new tag ${{ env.NEW_VERSION }}"
+            git tag -f ${{ env.NEW_VERSION }}
+            git push origin ${{ env.NEW_VERSION }} --force
+          } else {
+            echo "Tag ${{ env.NEW_VERSION }} already exists."
           }
 
       - name: Download Artifacts
