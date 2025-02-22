@@ -125,7 +125,7 @@ jobs:
         with:
           tag_name: ${{ needs.build.outputs.new_version }}
           name: "Release ${{ needs.build.outputs.new_version }}"
-          body: "Automated release for commit \`${{ github.sha }}\`."
+          body: "Automated release for commit `${{ github.sha }}`."
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
