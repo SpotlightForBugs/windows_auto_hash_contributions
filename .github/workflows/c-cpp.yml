@@ -3,8 +3,8 @@ name: Auto Build & Release (Windows)
 on:
   push:
     branches:
-      - main  # Runs on every commit to main
-  workflow_dispatch:  # Allows manual triggering
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,9 +14,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all tags to determine latest version
+          fetch-depth: 0
 
-      - name: Get Latest Tag and Increment Version (PowerShell)
+      - name: Get Latest Tag and Increment Version
         id: versioning
         shell: pwsh
         run: |
@@ -35,7 +35,13 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "New release version: $NEW_VERSION"
 
-      - name: Create New Git Tag
+      - name: Configure Git for Authentication
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
+
+      - name: Create and Push New Git Tag
         run: |
           git tag ${{ env.NEW_VERSION }}
           git push origin ${{ env.NEW_VERSION }}
