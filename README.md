@@ -1,4 +1,4 @@
-# windows_auto_hash_contributions
+# Automatic stanev.org handshake contributing, all through one simple exe file
 
 **Description:**
 This repository contains code for automatic handshake cracking for Windows, based on wpa-sec.stanev.org.
