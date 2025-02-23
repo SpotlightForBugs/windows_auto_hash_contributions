@@ -80,8 +80,8 @@ jobs:
           mkdir artifacts
           copy build\standard.exe artifacts\
           copy build\headless.exe artifacts\
-          copy help_crack.exe artifacts\
-          copy 7z.dll artifacts\
+          
+          
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
