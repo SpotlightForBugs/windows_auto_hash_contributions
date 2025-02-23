@@ -78,9 +78,7 @@ jobs:
       - name: Collect Artifacts
         run: |
           mkdir artifacts
-          copy build\standard.exe artifacts\
-          copy build\headless.exe artifacts\
-          
+          copy build\standard.exe artifacts\          
           
 
       - name: Upload Build Artifacts
