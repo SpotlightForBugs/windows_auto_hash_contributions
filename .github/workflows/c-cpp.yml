@@ -3,7 +3,7 @@ name: Auto Build & Release (Windows with MinGW)
 on:
   push:
     branches:
-      - main  # Runs on every commit to main
+      - master  # Runs on every commit to master
   workflow_dispatch:
 
 jobs:
