@@ -7,7 +7,7 @@ This repository contains code for automatic handshake cracking for Windows, base
 
 
 [Just head over to releases to get the latest version of the binaries](https://github.com/SpotlightForBugs/windows_auto_hash_contributions/releases/latest)
-(or use [dra](https://github.com/devmatteini/dra#installation)
+(or use [dra](https://github.com/devmatteini/dra#installation))
 
 - standard.exe what you would expect, you launch it,  it sets up hashcat and launches help_crack.py 
 <!-- headless.exe: no window is shown, everything is done hidden-->
